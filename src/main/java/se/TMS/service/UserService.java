@@ -1,4 +1,4 @@
-package Project.LI.service;
+package se.TMS.service;
 
 import se.TMS.data_access.RoleDao;
 import se.TMS.data_access.TimeLogDao;

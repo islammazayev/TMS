@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 
 public class TimeLog {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id")
     private Long id;
 
@@ -30,9 +30,6 @@ public class TimeLog {
 
     @Column(name = "stopTime")
     private LocalDateTime stopTime;
-
-    @Column(name = "registeredTime")
-    private Duration registeredTime;
 
     @Column(name = "timeCategory")
     private String timeCategory;

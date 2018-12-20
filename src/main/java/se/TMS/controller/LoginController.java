@@ -1,6 +1,7 @@
 package se.TMS.controller;
 
-import se.TMS.data_access.TimeLogDao;
+import javax.validation.Valid;
+
 import se.TMS.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -10,70 +11,64 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import Project.LI.service.UserService;
-
-import javax.validation.Valid;
+import se.TMS.service.UserService;
 
 @Controller
-    public class LoginController {
+public class LoginController {
 
-        @Autowired
-        private UserService userService;
+    @Autowired
+    private UserService userService;
 
-        @Autowired
-        private TimeLogDao timeLogDao;
+    @RequestMapping(value={"/", "/login"}, method = RequestMethod.GET)
+    public ModelAndView login(){
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("login");
+        return modelAndView;
+    }
 
 
-        @RequestMapping(value={"/", "/login"}, method = RequestMethod.GET)
-        public ModelAndView login(){
-            ModelAndView modelAndView = new ModelAndView();
-            modelAndView.setViewName("login");
-            return modelAndView;
+    @RequestMapping(value="/admin/registration", method = RequestMethod.GET)
+    public ModelAndView registration(){
+        ModelAndView modelAndView = new ModelAndView();
+        User user = new User();
+        modelAndView.addObject("user", user);
+        modelAndView.setViewName("/admin/registration");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/admin/registration", method = RequestMethod.POST)
+    public ModelAndView createNewUser(@Valid User user, BindingResult bindingResult) {
+        ModelAndView modelAndView = new ModelAndView();
+        User userExists = userService.findUserByEmail(user.getEmail());
+        if (userExists != null) {
+            bindingResult
+                    .rejectValue("email", "error.user",
+                            "There is already a user registered with the email provided");
         }
-
-
-        @RequestMapping(value="/admin/registration", method = RequestMethod.GET)
-        public ModelAndView registration(){
-            ModelAndView modelAndView = new ModelAndView();
-            User user = new User();
-            modelAndView.addObject("user", user);
+        if (bindingResult.hasErrors()) {
             modelAndView.setViewName("/admin/registration");
-            return modelAndView;
+        } else {
+            userService.saveUser(user);
+            modelAndView.addObject("successMessage", "User has been registered successfully");
+            modelAndView.addObject("user", new User());
+            modelAndView.setViewName("/admin/registration");
+
         }
-
-        @RequestMapping(value = "/admin/registration", method = RequestMethod.POST)
-        public ModelAndView createNewUser(@Valid User user, BindingResult bindingResult) {
-            ModelAndView modelAndView = new ModelAndView();
-            User userExists = userService.findUserByEmail(user.getEmail());
-            if (userExists != null) {
-                bindingResult
-                        .rejectValue("email", "error.user",
-                                "There is already a user registered with the email provided");
-            }
-            if (bindingResult.hasErrors()) {
-                modelAndView.setViewName("/admin/registration");
-            } else {
-                userService.saveUser(user);
-                modelAndView.addObject("successMessage", "User has been registered successfully");
-                modelAndView.addObject("user", new User());
-                modelAndView.setViewName("/admin/registration");
-
-            }
-            return modelAndView;
-        }
+        return modelAndView;
+    }
 
 
-        @RequestMapping(value="/home", method = RequestMethod.GET)
-        public ModelAndView home(){
-            ModelAndView modelAndView = new ModelAndView();
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            User user = userService.findUserByEmail(auth.getName());
-            modelAndView.addObject("user", user.getId());
-            modelAndView.addObject("userName", "Welcome " + user.getName() + " " + user.getLastName() + " (" + user.getEmail() + ")");
-            modelAndView.addObject("adminMessage","Content Available Only for Users with Admin Role");
-            modelAndView.setViewName("home");
-            return modelAndView;
-        }
+    @RequestMapping(value="/home", method = RequestMethod.GET)
+    public ModelAndView home(){
+        ModelAndView modelAndView = new ModelAndView();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.findUserByEmail(auth.getName());
+        modelAndView.addObject("user", user.getId());
+        modelAndView.addObject("userName", "Welcome " + user.getName() + " " + user.getLastName() + " (" + user.getEmail() + ")");
+        modelAndView.addObject("adminMessage","Content Available Only for Users with Admin Role");
+        modelAndView.setViewName("home");
+        return modelAndView;
+    }
 
 
 //    @RequestMapping(value="/starTime", method = RequestMethod.GET)
@@ -101,4 +96,5 @@ import javax.validation.Valid;
 //        modelAndView.setViewName("stopTime");
 //        return "startTime";
 //    }
+
 }
